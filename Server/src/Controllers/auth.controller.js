@@ -89,14 +89,46 @@ export const authContoller = {
         res.status(200).json({ message: "Logout Suceesfully!!!", success: true })
     },
     // Complete Profile page || onbroading 
-    onbroad : async ( req, res) =>{
+    onbroad: async (req, res) => {
+        try {
+            const userid = req.user._id
+            const { fullname, bio, nativeLangauge, learningLangauge, location } = req.body
 
-        const userid = req.user._id
+            const updateUser = await userModel.findByIdAndUpdate(userid, {
+                fullname,
+                bio,
+                nativeLangauge,
+                learningLangauge,
+                location,
+                isOnboarded: true
+            }, { new: true }).select("-password")
 
-        const{fullname , bio, nativeLangauge ,learningLangauge, location} = req.body
+            if (!updateUser) {
+                return res.status(400).json({ message: "User Not Found!", success: false })
+            }
 
-        
+            try {
+                await upsertUser({
+                    id: updateUser._id.toString(),
+                    name: updateUser.fullname,
+                    email: updateUser.email,
+                    profile: updateUser.profile || ""
+                })
+                console.log(`User updated for ${updateUser.fullname}`)
+            } catch (error) {
+                console.error("Error while updating the stream user:", error)
+            }
 
+            return res.status(200).json({ message: "User Onboarded Successfully", success: true, data: updateUser })
 
+        } catch (error) {
+            return res.status(500).json({ message: "Internal Server Error", success: false, error: error.message })
+        }
+    },
+    // Check if user is logined or not 
+    getLoginUser : async(req, res) => {
+        res.status(200).json({message : "Data retrived" , user : req.user , success : true})
     }
+
+
 }
