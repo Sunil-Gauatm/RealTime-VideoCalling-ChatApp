@@ -71,6 +71,32 @@ export const userController = {
             return res.status(500).json({ message: "Internal Server Error", error: error.message })
         }
 
+    },
+    acceptFriendRequest: async (req, res) => {
+        try {
+            const myId = req.user.id
+            const { id: requestId } = req.params
+
+            const friendRequest = await friendRequestModel.findById(requestId)
+            if (!friendRequest) {
+                return res.status(400).json({ message: "Cloudnt found the friendrequest" })
+            }
+
+            //verify that friendquest is accepted by the real user
+            if (friendRequest.Receiver.toString() !== myId) {
+                return res.status(400).json({ message: "You are not authorized to accept the request " })
+            }
+
+            friendRequest.status("Accepted")
+            await friendRequest.save()
+
+
+        } catch (error) {
+            return res.status(500).json({ message: "Internal Server Error", error: error.message })
+
+        }
+
     }
+
 
 }
