@@ -1,4 +1,5 @@
 import userModel from "../Models/user.model.js"
+import { friendRequestModel } from "../Models/FriendRequest.js"
 
 export const userController = {
     getRecommended: async (req, res) => {
@@ -32,21 +33,42 @@ export const userController = {
             return res.status(500).json({ message: "Internal Server Error", error: error.message })
         }
     },
-    sendFriendRequest : async(req , res) =>{
-        const myId = req.user.id
-        const { id : receiverId} = req.params
+    sendFriendRequest: async (req, res) => {
+        try {
+            const myId = req.user.id
+            const { id: receiverId } = req.params
 
-        if(myId === receiverId){
-            return res.status(400).json({message : "Cant send Friend Request to Yourself"})
-        }
-        const receipt = await userModel.findById(receiverId)
+            if (myId === receiverId) {
+                return res.status(400).json({ message: "Cant send Friend Request to Yourself" })
+            }
+            const receipt = await userModel.findById(receiverId)
 
-        if(!receipt){
-            return res.status(400).json({message : "User not found"})
-        }
-        //check user existed or not
-        if(receipt.friends.includes(myId)){
-            return res.status(400).json({message : 'You are already friend with this User'})
+            if (!receipt) {
+                return res.status(400).json({ message: "User not found" })
+            }
+            //check user existed or not
+            if (receipt.friends.includes(myId)) {
+                return res.status(400).json({ message: 'You are already friend with this User' })
+            }
+            //check if request Already existed or not
+            const existedUser = await friendRequestModel.findOne({
+                $or: [
+                    { Sender: myId, Receiver: receiverId },
+                    { Sender: receiverId, Receiver: myId },
+                ]
+            })
+            if (existedUser) {
+                return res.status(400).json({ message: "Friend Request Already Sent" })
+            }
+            const friendRequest = friendRequestModel.create({
+                Sender: myId,
+                Receiver: receiverId
+            })
+            return res.status(200).json({ message: "Friend Request Sent Sucessfully", friendRequest })
+
+
+        } catch (error) {
+            return res.status(500).json({ message: "Internal Server Error", error: error.message })
         }
 
     }

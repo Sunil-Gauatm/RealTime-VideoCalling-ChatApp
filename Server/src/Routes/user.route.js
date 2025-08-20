@@ -8,6 +8,7 @@ router.use(ProtectedRoute)
 
 router.get('/', userController.getRecommended)
 router.get('/getFriends', userController.getFriends)
+router.get('/sendFriendRequest/:id', userController.sendFriendRequest)
 
 
 export default router

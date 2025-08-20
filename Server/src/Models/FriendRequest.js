@@ -17,7 +17,7 @@ const friendRequestSchema = mongoose.Schema({
         default: "pending"
     },
     createdAt: {
-        type: date,
+        type: Date,
         default: Date.now
     }
 },
@@ -27,4 +27,4 @@ const friendRequestSchema = mongoose.Schema({
     }
 )
 
-const friendRequestModel = mongoose.model("friendRequest", friendRequestSchema)
+export const friendRequestModel = mongoose.model("friendRequest", friendRequestSchema)
